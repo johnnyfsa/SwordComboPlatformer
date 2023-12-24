@@ -48,6 +48,10 @@ public class Player : MonoBehaviour
     public LayerMask groundLayer;
     private bool isGrounded;
 
+
+    [Header("Fighting")]
+    public LayerMask enemyLayer;
+
     public bool IsGrounded
     {
         get
@@ -89,14 +93,18 @@ public class Player : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
 
         GroundCheck();
         ProcessGravity();
         ProcessWallSlide();
         ProcessWallJump();
-        if (!CanMove) return;
+        EnemyHeadCheck();
+        if (!CanMove)
+        {
+            return;
+        }
         if (!isWallJumping)
         {
             rb.velocity = new Vector2(horizontalMovement * speed, rb.velocity.y);
@@ -222,6 +230,13 @@ public class Player : MonoBehaviour
         {
             IsGrounded = false;
         }
+    }
+
+
+    private void EnemyHeadCheck()
+    {
+        if (Physics2D.OverlapBox(groundCheckPos.position, groundCheckSize, 0, enemyLayer))
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce); // half the velocity on the y axis
     }
     private void OnDrawGizmosSelected()
     {
