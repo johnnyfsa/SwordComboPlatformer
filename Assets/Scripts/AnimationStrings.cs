@@ -8,4 +8,5 @@ public class AnimationStrings
     internal static string attackTrigger = "Attack";
     internal static string canMove = "canMove";
     internal static string jumpTrigger = "Jump";
+    internal static string hasTarget = "HasTarget";
 }

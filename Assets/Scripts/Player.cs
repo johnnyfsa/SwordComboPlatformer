@@ -14,6 +14,21 @@ public class Player : MonoBehaviour
     [Header("Movement")]
     public float speed = 5.0f;
     private float horizontalMovement;
+
+    public float HorizontalMovement
+    {
+        get
+        {
+            if (CanMove)
+            {
+                return horizontalMovement;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+    }
     private bool isMoving = false;
 
     public bool IsMoving
@@ -101,15 +116,13 @@ public class Player : MonoBehaviour
         ProcessWallSlide();
         ProcessWallJump();
         EnemyHeadCheck();
-        if (!CanMove)
-        {
-            return;
-        }
+
         if (!isWallJumping)
         {
-            rb.velocity = new Vector2(horizontalMovement * speed, rb.velocity.y);
+            rb.velocity = new Vector2(HorizontalMovement * speed, rb.velocity.y);
             animator.SetFloat(AnimationStrings.yVelocity, rb.velocity.y);
             Flip();
+
         }
     }
 
