@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
+    Damageble damageble;
     private Rigidbody2D rb;
     bool isFacingRight = true;
 
@@ -55,6 +56,7 @@ public class Player : MonoBehaviour
     [Header("Jumping")]
     public float jumpForce = 10.0f;
     public int maxJumps = 2;
+    [SerializeField]
     private int jumpsLeft;
 
     [Header("GroundCheck")]
@@ -66,6 +68,7 @@ public class Player : MonoBehaviour
 
     [Header("Fighting")]
     public LayerMask enemyLayer;
+    public bool IsBlocking { get { return animator.GetBool(AnimationStrings.isBlocking); } }
 
     public bool IsGrounded
     {
@@ -80,6 +83,8 @@ public class Player : MonoBehaviour
         }
     }
 
+    public bool LockedVelocity { get { return animator.GetBool(AnimationStrings.lockVelocity); } }
+
     [Header("WallCheck")]
     public Transform wallCheckPos;
     public Vector2 wallCheckSize = new Vector2(0.5f, 0.5f);
@@ -93,6 +98,16 @@ public class Player : MonoBehaviour
     [Header("WallMovement")]
     public float wallSlideSpeed = 2f;
     bool isWallSliding;
+
+    public bool IsWallSliding
+    {
+        get { return isWallSliding; }
+        set
+        {
+            isWallSliding = value;
+            animator.SetBool(AnimationStrings.isWallSliding, value);
+        }
+    }
     //Wall Jumping
     bool isWallJumping;
     float wallJumpDirection;
@@ -100,6 +115,32 @@ public class Player : MonoBehaviour
     float wallJumpTimer;
     public Vector2 wallJumpForce = new Vector2(5f, 10f);
 
+    public bool isTouchingWall = false;
+
+
+    [Header("Dashing")]
+    [SerializeField]
+    private bool canDash;
+    public bool IsDashing
+    {
+        get
+        {
+            return animator.GetBool(AnimationStrings.isDashing);
+        }
+        set
+        {
+            animator.SetBool(AnimationStrings.isDashing, value);
+        }
+    }
+    [SerializeField]
+    private float dashForce = 24.0f;
+    private float dashTime = 0.3f;
+    [SerializeField]
+    private float dashCooldown = 1.0f;
+    private void Awake()
+    {
+        damageble = GetComponent<Damageble>();
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -113,16 +154,19 @@ public class Player : MonoBehaviour
 
         GroundCheck();
         ProcessGravity();
+        WallCheck();
         ProcessWallSlide();
         ProcessWallJump();
         EnemyHeadCheck();
-
-        if (!isWallJumping)
+        if (IsDashing)
+        { return; }
+        if (isWallJumping)
+        { return; }
+        if (!LockedVelocity)
         {
             rb.velocity = new Vector2(HorizontalMovement * speed, rb.velocity.y);
             animator.SetFloat(AnimationStrings.yVelocity, rb.velocity.y);
             Flip();
-
         }
     }
 
@@ -141,7 +185,7 @@ public class Player : MonoBehaviour
 
     private void ProcessWallJump()
     {
-        if (isWallSliding)
+        if (IsWallSliding)
         {
             isWallJumping = false;
             wallJumpDirection = -transform.localScale.x;
@@ -162,22 +206,23 @@ public class Player : MonoBehaviour
     private void ProcessWallSlide()
     {
         //not grounded & on a wall & movement !=0
-        if (!IsGrounded && WallCheck() && horizontalMovement != 0)
+        if (!IsGrounded && isTouchingWall && horizontalMovement != 0)
         {
-            isWallSliding = true;
+            IsWallSliding = true;
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(rb.velocity.y, -wallSlideSpeed));
         }
         else
         {
-            isWallSliding = false;
+            IsWallSliding = false;
         }
 
     }
 
     private bool WallCheck()
     {
+        isTouchingWall = Physics2D.OverlapBox(wallCheckPos.position, wallCheckSize, 0, wallLayer); //returns true if there is a wall in front of the player Physics2D.OverlapBox(wallCheckPos.position, wallCheckSize, 0, wallLayer); //returns true if there is a wall in front of the player
+        return isTouchingWall;
 
-        return Physics2D.OverlapBox(wallCheckPos.position, wallCheckSize, 0, wallLayer); //returns true if there is a wall in front of the player Physics2D.OverlapBox(wallCheckPos.position, wallCheckSize, 0, wallLayer); //returns true if there is a wall in front of the player
     }
 
     public void Move(InputAction.CallbackContext context)
@@ -194,13 +239,14 @@ public class Player : MonoBehaviour
             {
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
                 jumpsLeft--;
+                animator.SetTrigger(AnimationStrings.jumpTrigger);
             }
             else if (context.canceled)
             {
                 rb.velocity = new Vector2(rb.velocity.x, (rb.velocity.y / 2)); // half the velocity on the y axis
                 jumpsLeft--;
             }
-            animator.SetTrigger(AnimationStrings.jumpTrigger);
+
         }
 
         //wall jumping
@@ -248,7 +294,7 @@ public class Player : MonoBehaviour
 
     private void EnemyHeadCheck()
     {
-        if (Physics2D.OverlapBox(groundCheckPos.position, groundCheckSize, 0, enemyLayer))
+        if (Physics2D.OverlapBox(groundCheckPos.position, groundCheckSize, 270.0f, enemyLayer) && !IsDashing)
             rb.velocity = new Vector2(rb.velocity.x, jumpForce); // half the velocity on the y axis
     }
     private void OnDrawGizmosSelected()
@@ -265,5 +311,70 @@ public class Player : MonoBehaviour
         {
             animator.SetTrigger(AnimationStrings.attackTrigger);
         }
+    }
+
+    public void Block(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            animator.SetTrigger(AnimationStrings.blockTrigger);
+        }
+        else
+        {
+            animator.SetBool(AnimationStrings.isBlocking, false);
+        }
+    }
+
+    public void DashBtnPressed(InputAction.CallbackContext context)
+    {
+        if (canDash)
+        {
+            StartCoroutine(Dash());
+        }
+    }
+
+    private IEnumerator Dash()
+    {
+        Physics2D.IgnoreLayerCollision(0, 7, true);
+        canDash = false;
+        IsDashing = true;
+        rb.velocity = new Vector2(transform.localScale.x * dashForce, 0);
+        yield return new WaitForSeconds(dashTime);
+        IsDashing = false;
+        Physics2D.IgnoreLayerCollision(0, 7, false);
+        yield return new WaitForSeconds(dashCooldown);
+        canDash = true;
+    }
+    public void TakeDamage(int damage, Vector2 knockBack, Vector2 attackDirection)
+    {
+        //facing left
+        if (!isFacingRight)
+        {
+            //atack comes from right to left
+            if (attackDirection.x < 0)
+            {
+                rb.velocity = new Vector2(rb.velocity.x - knockBack.x, knockBack.y); //push left
+            }
+            //atack comes from left to right
+            else
+            {
+                rb.velocity = new Vector2(rb.velocity.x + knockBack.x, knockBack.y);//push right
+            }
+        }
+        //facing right
+        else
+        {
+            //atack comes from right to left
+            if (attackDirection.x < 0)
+            {
+                rb.velocity = new Vector2(rb.velocity.x - knockBack.x, knockBack.y); //push left
+            }
+            //atack comes from left to right
+            else
+            {
+                rb.velocity = new Vector2(rb.velocity.x + knockBack.x, knockBack.y);//push right
+            }
+        }
+
     }
 }

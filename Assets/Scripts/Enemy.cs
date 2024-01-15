@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -9,6 +10,34 @@ public class Enemy : MonoBehaviour
 {
     public Animator enemyAnimator;
     private Rigidbody2D rb;
+    private Collider2D enemyCollider;
+    [Header("GeoundDetection")]
+    [SerializeField]
+    private Transform groundDetector;
+    public Vector2 groundDetectorSize;
+    [SerializeField]
+    private bool isOnGround;
+
+    public bool IstakingHit
+    {
+        get
+        {
+            return enemyAnimator.GetBool(AnimationStrings.isTakingHit);
+        }
+    }
+    public bool IsOnGround
+    {
+        get
+        {
+            return isOnGround;
+        }
+        private set
+        {
+            isOnGround = value;
+            if (enemyAnimator != null)
+                enemyAnimator.SetBool(AnimationStrings.isGrounded, isOnGround);
+        }
+    }
     [Header("EdgeDetection")]
     [SerializeField]
     Transform edgeDetector;
@@ -22,10 +51,18 @@ public class Enemy : MonoBehaviour
 
     public bool CanMove
     {
-        get { return enemyAnimator.GetBool(AnimationStrings.canMove); }
+        get
+        {
+            if (enemyAnimator != null)
+                return enemyAnimator.GetBool(AnimationStrings.canMove);
+            else return false;
+        }
         set
         {
-            enemyAnimator.SetBool(AnimationStrings.canMove, value);
+            if (enemyAnimator != null)
+            {
+                enemyAnimator.SetBool(AnimationStrings.canMove, value);
+            }
         }
     }
 
@@ -37,7 +74,10 @@ public class Enemy : MonoBehaviour
         set
         {
             hasTarget = value;
-            enemyAnimator.SetBool(AnimationStrings.hasTarget, value);
+            if (enemyAnimator != null)
+            {
+                enemyAnimator.SetBool(AnimationStrings.hasTarget, value);
+            }
         }
     }
 
@@ -54,6 +94,8 @@ public class Enemy : MonoBehaviour
         }
     }
 
+
+
     [Header("Attack")]
     [SerializeField]
     DetectTargets detectionZone;
@@ -65,6 +107,7 @@ public class Enemy : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        enemyCollider = GetComponent<CapsuleCollider2D>();
     }
 
     // Update is called once per frame
@@ -73,7 +116,15 @@ public class Enemy : MonoBehaviour
         if (CanMove)
         {
             Move();
-            DetectEdge();
+            if (IsOnGround)
+            {
+                DetectEdge();
+                if (isOnEdge)
+                {
+                    Flip();
+                }
+            }
+
         }
         else
         {
@@ -82,8 +133,22 @@ public class Enemy : MonoBehaviour
 
     }
 
+    private void DetectGround()
+    {
+        if (Physics2D.OverlapBox(groundDetector.position, groundDetectorSize, 0, groundLayer))
+        {
+            IsOnGround = true;
+        }
+        else
+        {
+            IsOnGround = false;
+        }
+
+    }
+
     private void Update()
     {
+        DetectGround();
         if (detectionZone.targets.Count > 0)
         {
             HasTarget = true;
@@ -97,21 +162,24 @@ public class Enemy : MonoBehaviour
     //set methods Move and Flip
     public void Move()
     {
-        if (!isFacingRight)
+        if (!IstakingHit)
         {
-            rb.velocity = new Vector2(-moveSpeed, rb.velocity.y);
-        }
-        else
-        {
-            rb.velocity = new Vector2(moveSpeed, rb.velocity.y);
-        }
-        if (Mathf.Abs(rb.velocity.x) > 0.1f)
-        {
-            IsMoving = true;
-        }
-        else
-        {
-            IsMoving = false;
+            if (!isFacingRight)
+            {
+                rb.velocity = new Vector2(-moveSpeed, rb.velocity.y);
+            }
+            else
+            {
+                rb.velocity = new Vector2(moveSpeed, rb.velocity.y);
+            }
+            if (Mathf.Abs(rb.velocity.x) > 0.1f)
+            {
+                IsMoving = true;
+            }
+            else
+            {
+                IsMoving = false;
+            }
         }
     }
 
@@ -120,7 +188,6 @@ public class Enemy : MonoBehaviour
         if (!Physics2D.OverlapBox(edgeDetector.position, edgeDetectorSize, 0, groundLayer))
         {
             isOnEdge = true;
-            Flip();
         }
         else
         {
@@ -140,5 +207,53 @@ public class Enemy : MonoBehaviour
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(edgeDetector.position, edgeDetectorSize);
+        Gizmos.color = Color.white;
+        Gizmos.DrawWireCube(groundDetector.position, groundDetectorSize);
+    }
+
+    public void TakeDamage(int damage, Vector2 knockBack, Vector2 attackDirection)
+    {
+        //facing left <--
+        if (!isFacingRight)
+        {
+            //atack comes from right to left <--
+            if (attackDirection.x < 0f)
+            {
+                rb.velocity = new Vector2(rb.velocity.x - knockBack.x, knockBack.y); //push left
+                Flip();
+            }
+            //atack comes from left to right -->
+            else if (attackDirection.x >= 0f)
+            {
+                rb.velocity = new Vector2(rb.velocity.x + knockBack.x, knockBack.y);//push right
+            }
+        }
+        //facing right-->
+        else
+        {
+            //atack comes from right to left <--
+            if (attackDirection.x <= 0)
+            {
+                rb.velocity = new Vector2(rb.velocity.x - knockBack.x, knockBack.y); //push left
+            }
+            //atack comes from left to right -->
+            else
+            {
+                rb.velocity = new Vector2(rb.velocity.x + knockBack.x, knockBack.y);//push right
+                Flip();
+            }
+        }
+
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Wall") || collision.gameObject.layer == LayerMask.NameToLayer("Enemies"))
+        {
+            if (IsOnGround)
+            {
+                Flip();
+            }
+        }
     }
 }

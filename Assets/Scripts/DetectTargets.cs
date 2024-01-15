@@ -13,7 +13,11 @@ public class DetectTargets : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        targets.Add(collision);
+        if (collision.TryGetComponent<Player>(out Player payer))
+        {
+            targets.Add(collision);
+        }
+
     }
 
     private void OnTriggerExit2D(Collider2D collision)
