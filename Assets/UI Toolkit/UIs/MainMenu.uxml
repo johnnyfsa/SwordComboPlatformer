@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/UIs/Styles/MainMenuStyleSheet.uss?fileID=7433441132597879392&amp;guid=a1393813fbe38fc4f80e265662af37f2&amp;type=3#MainMenuStyleSheet" />
+    <ui:VisualElement name="Container" style="flex-grow: 1; flex-direction: row; width: 100%; height: 100%;">
+        <ui:VisualElement name="left" class="ContainerChildren" style="flex-grow: 1;" />
+        <ui:VisualElement name="middle" class="ContainerChildren" style="flex-grow: 1; justify-content: center;">
+            <ui:Label tabindex="-1" text="Stage Select" parse-escape-sequences="true" display-tooltip-when-elided="true" style="align-items: auto; -unity-text-align: upper-center; -unity-font: url(&apos;project://database/Assets/Fonts/m5x7.ttf?fileID=12800000&amp;guid=3f2b7bcc8b95e8d489ed632613c3ef3c&amp;type=3#m5x7&apos;); -unity-font-definition: url(&apos;project://database/Assets/Fonts/m5x7%20SDF%201.asset?fileID=11400000&amp;guid=2681662f9e2e00e48ab0c5ab5c9496f2&amp;type=2#m5x7 SDF 1&apos;); font-size: 45px;" />
+            <ui:Button text="Stage 1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Stage1" />
+            <ui:Button text="Stage 2" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Stage2" />
+            <ui:Button text="Stage 3" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Stage3" />
+        </ui:VisualElement>
+        <ui:VisualElement name="right" class="ContainerChildren" style="flex-grow: 1;" />
+    </ui:VisualElement>
+</ui:UXML>

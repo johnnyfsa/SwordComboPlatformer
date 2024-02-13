@@ -5,7 +5,7 @@ using UnityEngine;
 public class ParallaxEffect : MonoBehaviour
 {
     public Camera cam;
-    public Transform subject;
+    private Transform subject;
 
     //Starting position of the parallax object
     Vector2 startPos;
@@ -14,19 +14,24 @@ public class ParallaxEffect : MonoBehaviour
     float startZ;
 
     //Camera movement since start of game
-    Vector2 camMoveSinceStart => (Vector2)cam.transform.position - startPos;
+    Vector2 camMoveSinceStart;
 
     //Distance from the target
-    float zDistanceFromTarget => transform.position.z - subject.position.z;
+    float zDistanceFromTarget;
 
     //clipping plane
-    float clippingPlane => (cam.transform.position.z + (zDistanceFromTarget > 0 ? cam.farClipPlane : cam.nearClipPlane));
+    float clippingPlane;
     //paralax Factor
-    float parallaxFactor => Mathf.Abs(zDistanceFromTarget) / clippingPlane;
+    float parallaxFactor;
 
     // Start is called before the first frame update
     void Start()
     {
+        subject = GameObject.Find("Player").transform;
+        if (!subject)
+        {
+            print("null subject");
+        }
         startPos = transform.position;
         startZ = transform.position.z;
     }
@@ -34,6 +39,10 @@ public class ParallaxEffect : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        camMoveSinceStart = (Vector2)cam.transform.position - startPos;
+        zDistanceFromTarget = transform.position.z - subject.position.z;
+        clippingPlane = cam.transform.position.z + (zDistanceFromTarget > 0 ? cam.farClipPlane : cam.nearClipPlane);
+        parallaxFactor = Mathf.Abs(zDistanceFromTarget) / clippingPlane;
         Vector2 newPos = startPos + camMoveSinceStart * parallaxFactor;
         transform.position = new Vector3(newPos.x, newPos.y, startZ);
     }

@@ -39,7 +39,7 @@ public class Spring : MonoBehaviour
                 IsOnSpring = true;
                 rb.AddForce((Vector2.up * springForce), ForceMode2D.Impulse);
             }
-
+            AudioManager.Instance.PlaySFX(SoundType.Bounce);
         }
     }
 

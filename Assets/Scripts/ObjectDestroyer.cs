@@ -10,5 +10,9 @@ public class ObjectDestroyer : MonoBehaviour
         {
             damageble.Hit(damageble.CurrentHealth, Vector2.zero, Vector2.zero);
         }
+        else if (collision.gameObject.TryGetComponent<FallingPlatform>(out FallingPlatform fallingPlatform))
+        {
+            fallingPlatform.gameObject.SetActive(false);
+        }
     }
 }

@@ -168,5 +168,9 @@ public class Damageble : MonoBehaviour
     public void ResetHealth()
     {
         this.currentHealth = this.maxHealth;
+        if (!IsAlive)
+        {
+            IsAlive = true;
+        }
     }
 }

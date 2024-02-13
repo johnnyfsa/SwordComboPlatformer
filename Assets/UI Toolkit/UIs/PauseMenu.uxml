@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/UIs/Styles/PauseMenuStyleSheet.uss?fileID=7433441132597879392&amp;guid=8e2cada6da36b504caf6600d992cbc4b&amp;type=3#PauseMenuStyleSheet" />
+    <ui:VisualElement name="Container" style="flex-grow: 1; width: 100%; height: 100%; flex-direction: row;">
+        <ui:VisualElement name="left" class="conteinerChild" style="flex-grow: 1;" />
+        <ui:VisualElement name="middle" class="conteinerChild" style="flex-grow: 1; justify-content: center;">
+            <ui:Button text="Back to Title" parse-escape-sequences="true" display-tooltip-when-elided="true" name="returnToTitle" />
+            <ui:Button text="Resume Game" parse-escape-sequences="true" display-tooltip-when-elided="true" name="resume" />
+        </ui:VisualElement>
+        <ui:VisualElement name="right" class="conteinerChild" style="flex-grow: 1;" />
+    </ui:VisualElement>
+</ui:UXML>

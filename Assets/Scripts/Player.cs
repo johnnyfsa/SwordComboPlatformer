@@ -239,6 +239,7 @@ public class Player : MonoBehaviour
             {
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
                 jumpsLeft--;
+                AudioManager.Instance.PlaySFX(SoundType.Jump);
                 animator.SetTrigger(AnimationStrings.jumpTrigger);
             }
             else if (context.canceled)

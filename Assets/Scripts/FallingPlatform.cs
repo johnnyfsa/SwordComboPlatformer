@@ -41,4 +41,10 @@ public class FallingPlatform : MonoBehaviour
 
     }
 
+    public void ResetFallingPlatform()
+    {
+        isFalling = false;
+        boxCollider.isTrigger = false;
+    }
+
 }

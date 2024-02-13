@@ -51,9 +51,14 @@ public class UIManager : MonoBehaviour
     {
         FinishText.SetActive(true);
         winCondition.enabled = false;
-        Time.timeScale = 0;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        Debug.Log("Finish");
+        GameManager.Instance.GameOver();
+        StartCoroutine(FinishLevel());
+
+    }
+
+    private IEnumerator FinishLevel()
+    {
+        yield return new WaitForSecondsRealtime(AudioManager.Instance.FindSFXDuration(SoundType.Victory));
+        GameManager.Instance.LoadStage(0);
     }
 }

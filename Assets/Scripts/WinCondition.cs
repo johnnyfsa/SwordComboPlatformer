@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.ProjectWindowCallback;
 using UnityEngine;
 
 public class WinCondition : MonoBehaviour
@@ -12,6 +9,7 @@ public class WinCondition : MonoBehaviour
     {
         DestroyTarget,
         ReachPlatform,
+        None
     }
 
     public GameObject targetToDestroy, platformToReach;
@@ -53,6 +51,8 @@ public class WinCondition : MonoBehaviour
                     OnWin?.Invoke();
                 }
                 break;
+            case WinConditionType.None:
+                return;
         }
     }
 }

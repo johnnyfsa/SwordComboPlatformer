@@ -1,7 +1,7 @@
 using System.Collections;
-using System.Collections.Generic;
 using Cinemachine;
 using Unity.IO.LowLevel.Unsafe;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,13 +9,13 @@ public class CameraOffsetController : MonoBehaviour
 {
     public CinemachineVirtualCamera virtualCamera;
 
-    private float smoothingFactor = 1f;
+    private Vector3 smoothingFactor;
 
-    public float maxYOffset = 5.0f;
+    public Vector3 maxOffset;
     // Start is called before the first frame update
     void Start()
     {
-
+        smoothingFactor = maxOffset / 10;
     }
 
     // Update is called once per frame
@@ -29,41 +29,45 @@ public class CameraOffsetController : MonoBehaviour
         var transposer = virtualCamera.GetCinemachineComponent<CinemachineFramingTransposer>();
         if (transposer)
         {
-            StartCoroutine(OffsetDownwards());
+            StartCoroutine(OffsetForward());
         }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        StartCoroutine(OffsetUpwards());
+        StartCoroutine(OffsetBackward());
     }
 
 
-    private IEnumerator OffsetDownwards()
+    private IEnumerator OffsetForward()
     {
+
         var transposer = virtualCamera.GetCinemachineComponent<CinemachineFramingTransposer>();
         while (true)
         {
-            transposer.m_TrackedObjectOffset.y -= smoothingFactor / 10;
-            if (transposer.m_TrackedObjectOffset.y <= -maxYOffset)
+            transposer.m_TrackedObjectOffset += smoothingFactor;
+            if (math.abs(transposer.m_TrackedObjectOffset.y) >= math.abs(maxOffset.y) && math.abs(transposer.m_TrackedObjectOffset.x) >= math.abs(maxOffset.x))
             {
                 break;
             }
+
         }
         yield return null;
     }
 
-    private IEnumerator OffsetUpwards()
+    private IEnumerator OffsetBackward()
     {
         var transposer = virtualCamera.GetCinemachineComponent<CinemachineFramingTransposer>();
         while (true)
         {
-            transposer.m_TrackedObjectOffset.y += smoothingFactor;
-            if (transposer.m_TrackedObjectOffset.y >= 0)
+            transposer.m_TrackedObjectOffset -= smoothingFactor;
+            if (transposer.m_TrackedObjectOffset.y <= 0 && transposer.m_TrackedObjectOffset.x <= 0)
             {
                 transposer.m_TrackedObjectOffset.y = 0;
+                transposer.m_TrackedObjectOffset.x = 0;
                 break;
             }
+
         }
         yield return null;
 

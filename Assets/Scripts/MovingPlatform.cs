@@ -5,23 +5,33 @@ using UnityEngine;
 
 public class MovingPlatform : MonoBehaviour
 {
-    public Transform pointA;
-    public Transform pointB;
+    public List<Transform> points;
     private Vector3 nextPosition;
+    private Vector3 startingPoint;
     public float moveSpeed = 2.0f;
+
+    private int locationIndex = 0;
     // Start is called before the first frame update
     void Start()
     {
-        nextPosition = pointB.position;
+        startingPoint = transform.position;
+        nextPosition = points[0].position;
     }
 
     // Update is called once per frame
     void Update()
     {
+        //moves to the next location
         transform.position = Vector3.MoveTowards(transform.position, nextPosition, moveSpeed * Time.deltaTime);
         if (transform.position == nextPosition)
         {
-            nextPosition = (nextPosition == pointA.position) ? pointB.position : pointA.position;
+            locationIndex++;
+            if (locationIndex >= points.Count)
+            {
+                locationIndex = 0;
+            }
+            //once it reaches the location
+            nextPosition = points[locationIndex].position;
         }
     }
 
